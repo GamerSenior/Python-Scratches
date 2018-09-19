@@ -1,18 +1,29 @@
-import urwid
+import urwid, ftp
 
 def exit_program(button):
     raise urwid.ExitMainLoop()
 
+def connect():
+    return None
+
 menu_abertura = [
     {
         'label': 'Conectar FTP Support',
-        'callback': None,
+        'callback': connect,
     },{
         'label': 'Sair',
         'callback': exit_program,
     }
 ]
-menu_principal = ['Upload Projetos', 'Upload Relatórios', 'Sair']
+menu_principal = [
+    {
+        'label': 'Upload Projetos',
+        'callback': upload,
+    },{
+        'label': 'Upload Relatórios',
+        'callback': uploadRelatorio
+    }
+       , 'Sair']
 
 def menu_buttom(caption, callback):
     button = urwid.Button(caption)
