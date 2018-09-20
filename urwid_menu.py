@@ -4,9 +4,9 @@ from pudb import set_trace
 
 logger = logging.getLogger('urwid-log')
 
-ftp = FTP('ftp.supportweb.com.br')
-username = ''
-password = ''
+#ftp = FTP('ftp.supportweb.com.br')
+#username = ''
+#password = ''
 
 def exit_program(button):
     raise urwid.ExitMainLoop()
@@ -32,17 +32,21 @@ class LoginBox(urwid.Filler):
         self.useredit = urwid.Edit('Usuario: ', '', align='center')
         self.senhaedit = urwid.Edit('Senha: ', '', mask='*', align='center')
         self.loginbtn = urwid.Button('Login')
-        self.exitedit = urwid.Button('Sair')
-        urwid.connect_signal(user, 'change', set_user)
-        urwid.connect_signal(passwd, 'change', set_pass)
-        urwid.connect_signal(login, 'click', log_in)
-        urwid.connect_signal(exit, 'click', exit_program)
+        self.exitbtn = urwid.Button('Sair')
+        urwid.connect_signal(self.loginbtn, 'click', self.login)
+        urwid.connect_signal(self.exitbtn, 'click', exit_program)
         div = urwid.Divider()
-        pile = urwid.Pile([user, passwd, div,
-                       urwid.AttrMap(login, None, focus_map='reversed'),
-                       urwid.AttrMap(exit, None, focus_map='reversed')
+        pile = urwid.Pile([self.useredit, self.senhaedit, div,
+                       urwid.AttrMap(self.loginbtn, None, focus_map='reversed'),
+                       urwid.AttrMap(self.exitbtn, None, focus_map='reversed')
                        ])
-        self.body = pile
+#        self.body = pile
+        super().__init__(pile)
+
+    def login(self, widget):
+        username = self.useredit.get_edit_text()
+        password = self.senhaedit.get_edit_text()
+        set_trace()
 
 def login_box():
     user = urwid.Edit('Usuario: ', '', align='center')
@@ -63,7 +67,7 @@ def login_box():
 
 def connect(button):
     try:
-        main.original_widget = login_box()
+        main.original_widget = LoginBox()
     except:
         print('Erro inesperado', sys.exc_info()[0])
 
