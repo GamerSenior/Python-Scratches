@@ -1,6 +1,8 @@
-import urwid, sys
+import urwid, sys, logging
 from ftplib import FTP
 from pudb import set_trace
+
+logger = logging.getLogger('urwid-log')
 
 ftp = FTP('ftp.supportweb.com.br')
 username = ''
@@ -18,10 +20,29 @@ def log_in(edit):
         print('Erro ao realizar login', sys.exc_info()[0])
 
 def set_user(edit, content):
+    logger.info(content)
     username = content
 
 def set_pass(edit, content):
+    logger.info(content)
     password = content
+
+class LoginBox(urwid.Filler):
+    def __init__(self):
+        self.useredit = urwid.Edit('Usuario: ', '', align='center')
+        self.senhaedit = urwid.Edit('Senha: ', '', mask='*', align='center')
+        self.loginbtn = urwid.Button('Login')
+        self.exitedit = urwid.Button('Sair')
+        urwid.connect_signal(user, 'change', set_user)
+        urwid.connect_signal(passwd, 'change', set_pass)
+        urwid.connect_signal(login, 'click', log_in)
+        urwid.connect_signal(exit, 'click', exit_program)
+        div = urwid.Divider()
+        pile = urwid.Pile([user, passwd, div,
+                       urwid.AttrMap(login, None, focus_map='reversed'),
+                       urwid.AttrMap(exit, None, focus_map='reversed')
+                       ])
+        self.body = pile
 
 def login_box():
     user = urwid.Edit('Usuario: ', '', align='center')
