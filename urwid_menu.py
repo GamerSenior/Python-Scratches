@@ -1,10 +1,50 @@
-import urwid, ftp
+import urwid, sys
+from ftplib import FTP
+from pudb import set_trace
+
+ftp = FTP('ftp.supportweb.com.br')
+username = ''
+password = ''
 
 def exit_program(button):
     raise urwid.ExitMainLoop()
 
-def connect():
-    return None
+def log_in(edit):
+    set_trace()
+    try:
+        print(username, password)
+        ftp.login(username, password)
+    except:
+        print('Erro ao realizar login', sys.exc_info()[0])
+
+def set_user(edit, content):
+    username = content
+
+def set_pass(edit, content):
+    password = content
+
+def login_box():
+    user = urwid.Edit('Usuario: ', '', align='center')
+    urwid.connect_signal(user, 'change', set_user)
+    passwd = urwid.Edit('Senha: ', '', mask='*', align='center')
+    urwid.connect_signal(passwd, 'change', set_pass)
+    login = urwid.Button('Login')
+    urwid.connect_signal(login, 'click', log_in)
+    exit = urwid.Button('Sair')
+    urwid.connect_signal(exit, 'click', exit_program)
+    div = urwid.Divider()
+    pile = urwid.Pile([user, passwd, div,
+                       urwid.AttrMap(login, None, focus_map='reversed'),
+                       urwid.AttrMap(exit, None, focus_map='reversed')
+                       ])
+
+    return urwid.Filler(pile)
+
+def connect(button):
+    try:
+        main.original_widget = login_box()
+    except:
+        print('Erro inesperado', sys.exc_info()[0])
 
 menu_abertura = [
     {
@@ -15,15 +55,19 @@ menu_abertura = [
         'callback': exit_program,
     }
 ]
+
 menu_principal = [
     {
         'label': 'Upload Projetos',
-        'callback': upload,
+        'callback': None,
     },{
         'label': 'Upload Relatórios',
-        'callback': uploadRelatorio
+        'callback': None
+    },{
+        'label': 'Sair',
+        'callback': exit_program,
     }
-       , 'Sair']
+]
 
 def menu_buttom(caption, callback):
     button = urwid.Button(caption)
@@ -36,7 +80,8 @@ def menu(title, choices):
         body.append(menu_buttom(item['label'], item['callback']))
     return urwid.ListBox(urwid.SimpleFocusListWalker(body))
 
-main = urwid.Padding(menu('Support Uploader BETA 0.1', menu_abertura), left=2, right=2)
+main = urwid.Padding(menu('Support Uploader BETA 0.1', menu_abertura),
+                     left=2, right=2)
 top = urwid.Overlay(main, urwid.SolidFill('\N{MEDIUM SHADE}'),
                     align='center', width=('relative', 60),
                     valign='middle', height=('relative', 60),
