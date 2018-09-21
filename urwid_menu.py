@@ -25,22 +25,17 @@ class MenuPrincipal(urwid.Filler):
         pile.append(exit)
         super().__init__(urwid.Pile(pile))
 
-    def troca_diretorio(self, widget):
-        diretorio = self.diretorio.get_edit_text()
-        try:
-            ftp.cwd(diretorio)
-        except:
-            logger.error('Erro ao trocar de diretório', sys.exc_info()[0])
-
-    def escolher_diretorio(self, widget):
-        self.diretorio = urwid.Edit('Diretório', '')
-        errors = urwid.Text('')
-        entrar = urwid.Button('Entrar no diretório')
-        urwid.connect_signal(entrar, 'click', self.troca_diretorio)
-        pile = urwid.Pile([diretorio, errors, entrar])
-        main.original_widget = urwid.Filler(pile)
-
     def upload_projetos(self, widget):
+        main.original_widget = MenuUploadProjetos()
+
+    def upload_relatorios(self, widget):
+        return None
+
+    def voltar(self, widget):
+        main.original_widget = self;
+
+class MenuUploadProjetos(urwid.Filler):
+    def __init__(self):
         projetos = []
         ord = urwid.CheckBox('ORD', user_data='ord')
         seg = urwid.CheckBox('SEG', user_data='seg')
@@ -59,13 +54,26 @@ class MenuPrincipal(urwid.Filler):
         projetos.append(div)
         projetos.append(upload)
         projetos.append(sair)
-        main.original_widget = urwid.Filler(urwid.Pile(projetos))
+        super().__init__(urwid.Pile(projetos))
 
-    def upload_relatorios(self, widget):
-        return None
 
-    def voltar(self, widget):
-        main.original_widget = self;
+class TelaDiretorio(urwid.Filler):
+    def __init__(self):
+        self.diretorio = urwid.Edit('Diretório: ', '')
+        self.erros = urwid.Text('')
+        entrar = urwid.Button('Entrar no diretório')
+        urwid.connect_signal(entrar, 'click', self.troca_diretorio)
+        pile = urwid.Pile([self.diretorio, self.erros, entrar])
+        super().__init__(pile)
+
+    def troca_diretorio(self, widget):
+        diretorio = self.diretorio.get_edit_text()
+        try:
+            ftp.cwd(diretorio)
+            main.original_widget = MenuPrincipal()
+        except:
+            self.erros.set_text('Erro ao acessar diretório')
+            logger.error('Erro ao trocar de diretório', sys.exc_info()[0])
 
 class LoginBox(urwid.Filler):
     def __init__(self):
@@ -88,7 +96,7 @@ class LoginBox(urwid.Filler):
         password = self.senhaedit.get_edit_text()
         try:
             ftp.login(username, password)
-            main.original_widget = MenuPrincipal();
+            main.original_widget = TelaDiretorio();
         except:
             logger.info('Deu ruim!', sys.exc_info()[0])
             self.erros.set_text('Usuario ou senha inválidos')
