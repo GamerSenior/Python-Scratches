@@ -7,19 +7,23 @@ from pudb import set_trace
 logger = logging.getLogger('urwid-log')
 
 ftp = FTP('ftp.supportweb.com.br')
+JAVA_SINC = environ['JAVA_SINC_DIR']
 
 def exit_program(button):
     raise urwid.ExitMainLoop()
 
 class MenuPrincipal(urwid.Filler):
     def __init__(self):
-        self.projetos_upload = []
+        self.diretorio = urwid.Text('Diretório: ')
+        div = urwid.Divider()
         upload_projetos = urwid.Button('Upload Projeto')
         upload_relatorios = urwid.Button('Upload Relatórios')
         exit = urwid.Button('Sair')
         urwid.connect_signal(upload_projetos, 'click', self.upload_projetos)
         urwid.connect_signal(exit, 'click', exit_program)
         pile = []
+        pile.append(self.diretorio)
+        pile.append(div)
         pile.append(upload_projetos)
         pile.append(upload_relatorios)
         pile.append(exit)
@@ -36,6 +40,8 @@ class MenuPrincipal(urwid.Filler):
 
 class MenuUploadProjetos(urwid.Filler):
     def __init__(self):
+        self.projetos = []
+        self.mensagens = urwid.Text('')
         projetos = []
         ord = urwid.CheckBox('ORD', user_data='ord')
         seg = urwid.CheckBox('SEG', user_data='seg')
@@ -43,19 +49,36 @@ class MenuUploadProjetos(urwid.Filler):
         div = urwid.Divider()
         upload = urwid.Button('Realizar Upload')
         sair = urwid.Button('Voltar')
+        urwid.connect_signal(upload, 'click', self.realiza_upload)
         urwid.connect_signal(sair, 'click', self.voltar)
         projetos.append(ord)
         projetos.append(seg)
         projetos.append(troppus)
         for projeto in projetos:
                 urwid.connect_signal(projeto, 'change',
-                                 lambda s, p: self.projetos_upload.append(p)
-                                 if s else self.projetos_upload.remove(p))
+                                 lambda s, p: self.projetos.append(p)
+                                 if s else self.projetos.remove(p))
         projetos.append(div)
         projetos.append(upload)
         projetos.append(sair)
-        super().__init__(urwid.Pile(projetos))
+        super().__init__(urwid.Pile([self.mensagens] + projetos))
 
+    def voltar(self, widget):
+        main.original_widget = MenuPrincipal()
+
+    def realiza_upload(self, widget):
+        try:
+            for projeto in self.projetos:
+                arquivo = Path(f'{JAVA_SINC}/{projeto}/war/target/{projeto}.war')
+                if arquivo.is_file():
+                        file = open(str(arquivo), 'rb')
+                        ftp.storbinary(f'stor {projeto}.war', file)
+                        file.close()
+        except:
+            self.mensagens.set_text('Erro ao realizar upload')
+            logger.error('Erro inesperado ao abrir arquivo: ',
+                         sys.exc_info()[0])
+        self.mensagens.set_text("Upload realizado com sucesso!")
 
 class TelaDiretorio(urwid.Filler):
     def __init__(self):
@@ -71,6 +94,7 @@ class TelaDiretorio(urwid.Filler):
         try:
             ftp.cwd(diretorio)
             main.original_widget = MenuPrincipal()
+            main.original_widget.diretorio = diretorio
         except:
             self.erros.set_text('Erro ao acessar diretório')
             logger.error('Erro ao trocar de diretório', sys.exc_info()[0])
