@@ -56,8 +56,10 @@ class MenuUploadProjetos(urwid.Filler):
         projetos.append(troppus)
         for projeto in projetos:
                 urwid.connect_signal(projeto, 'change',
-                                 lambda s, p: self.projetos.append(p)
-                                 if s else self.projetos.remove(p))
+                                 lambda s, p: self.projetos.append(
+                                     projeto.get_label().lower())
+                                 if s else self.projetos.remove(projeto.get_label()
+                                                                .lower()))
         projetos.append(div)
         projetos.append(upload)
         projetos.append(sair)
@@ -74,11 +76,11 @@ class MenuUploadProjetos(urwid.Filler):
                         file = open(str(arquivo), 'rb')
                         ftp.storbinary(f'stor {projeto}.war', file)
                         file.close()
+            self.mensagens.set_text("Upload realizado com sucesso!")
         except:
             self.mensagens.set_text('Erro ao realizar upload')
             logger.error('Erro inesperado ao abrir arquivo: ',
                          sys.exc_info()[0])
-        self.mensagens.set_text("Upload realizado com sucesso!")
 
 class TelaDiretorio(urwid.Filler):
     def __init__(self):
