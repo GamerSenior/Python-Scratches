@@ -6,8 +6,12 @@ from pudb import set_trace
 
 logger = logging.getLogger('urwid-log')
 
-ftp = FTP('ftp.supportweb.com.br')
-JAVA_SINC = environ['JAVA_SINC_DIR']
+try:
+    ftp = FTP('ftp.supportweb.com.br')
+    JAVA_SINC = environ['JAVA_SINC_DIR']
+    RELATORIOS = environ['RELATORIOS_DIR']
+except KeyError:
+    logger.error('Falha ao buscar variáveis de ambiente')
 
 def exit_program(button):
     raise urwid.ExitMainLoop()
@@ -38,6 +42,13 @@ class MenuPrincipal(urwid.Filler):
     def voltar(self, widget):
         main.original_widget = self;
 
+class MenuUploadRelatorios(urwid.Filler):
+    def __init__(self):
+        self.relatorios = []
+
+    def busca_relatorios(self, widget):
+        path = Path(RELATORIOS)
+
 class MenuUploadProjetos(urwid.Filler):
     def __init__(self):
         self.projetos = []
@@ -55,11 +66,7 @@ class MenuUploadProjetos(urwid.Filler):
         projetos.append(seg)
         projetos.append(troppus)
         for projeto in projetos:
-                urwid.connect_signal(projeto, 'change',
-                                 lambda s, p: self.projetos.append(
-                                     projeto.get_label().lower())
-                                 if s else self.projetos.remove(projeto.get_label()
-                                                                .lower()))
+                urwid.connect_signal(projeto, 'change', self.escolhe_projetos)
         projetos.append(div)
         projetos.append(upload)
         projetos.append(sair)
@@ -67,6 +74,17 @@ class MenuUploadProjetos(urwid.Filler):
 
     def voltar(self, widget):
         main.original_widget = MenuPrincipal()
+
+    def escolhe_projetos(self, widget, escolha):
+        set_trace()
+        projeto = widget.get_label().lower()
+        if(escolha):
+            self.projetos.append(projeto)
+        else:
+            try:
+                self.projetos.remove(projeto)
+            except ValueError:
+                pass
 
     def realiza_upload(self, widget):
         try:
