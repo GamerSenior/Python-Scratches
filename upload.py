@@ -5,8 +5,8 @@ import sys, json, curses
 
 
 JAVA_SINC = environ['JAVA_SINC_DIR']
-USUARIO="mauricio"
-SENHA="1234"
+USUARIO=enciron['USUARIO_FTP']
+SENHA=environ['SENHA_FTP']
 
 def verificaArquivos():
     projetos = {
